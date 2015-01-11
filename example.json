@@ -1,0 +1,38 @@
+{
+  "builders": [{
+    "type": "virtualbox-iso",
+    "guest_os_type": "RedHat_64",
+    "iso_checksum_type": "md5",
+    "iso_checksum": "eb3c8be6ab668e6d83a118323a789e6c",
+    "iso_url": "http://mirror.hmc.edu/centos/6.6/isos/x86_64/CentOS-6.6-x86_64-minimal.iso",
+    "ssh_username": "vagrant",
+    "ssh_password": "vagrant",
+    "shutdown_command": "sudo -S shutdown -P now",
+    "http_directory": "http",
+    "boot_command": [
+      "<wait><esc><esc>",
+      "linux ks=http://{{.HTTPIP}}:{{.HTTPPort}}/kickstart<enter>"
+    ]
+  }],
+  "post-processors": ["vagrant"],
+  "provisioners": [{
+    "type": "shell",
+    "inline": [
+      "sleep 30",
+      "sudo mkdir /tmp/vboxguest",
+      "sudo mount -t iso9660 -o loop /home/vagrant/VBoxGuestAdditions.iso /tmp/vboxguest",
+      "sudo yum -y --enablerepo rpmforge install dkms",
+      "sudo yum -y groupinstall 'Development Tools'",
+      "sudo yum -y install kernel-devel-2.6.32-504.el6.x86_64",
+      "cd /tmp/vboxguest",
+      "sudo ./VBoxLinuxAdditions.run",
+      "cd /tmp",
+      "sudo umount /tmp/vboxguest",
+      "sudo rmdir /tmp/vboxguest",
+      "rm /home/vagrant/VBoxGuestAdditions.iso",
+      "sudo yum install -y curl",
+      "curl -L https://www.chef.io/chef/install.sh | sudo bash",
+      "echo Image Provisioned!"
+    ]
+  }]
+}
